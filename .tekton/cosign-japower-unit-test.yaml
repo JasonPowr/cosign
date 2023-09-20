@@ -2,19 +2,42 @@ kind: Pipeline
 apiVersion: tekton.dev/v1beta1
 metadata:
   name: unit-tests
+  namespace: japower-tenant
 spec:
   params:
   - name: git-url
-    default: "https://github.com/JasonPowr/cosign.git"
-  - name: git-revision
-    default: "redhat-v2.1.1"
-  tasks:
+    value: '{{repo_url}}'
+  - name: revision
+    value: '{{revision}}'
+  pipelineSpec:
+    params:
+    - description: Source Repository URL
+      name: git-url
+      type: string
+    - default: ""
+      description: Revision of the Source Repository
+      name: revision
+      type: string
+    tasks:
+    - name: init
+      params:
+      taskRef:
+        params:
+        - name: name
+          value: init
+        - name: bundle
+          value: quay.io/redhat-appstudio-tekton-catalog/task-init:0.1@sha256:26586a7ef08c3e86dfdaf0a5cc38dd3d70c4c02db1331b469caaed0a0f5b3d86
+        - name: kind
+          value: task
+        resolver: bundles
     - name: clone-repository
       params:
       - name: url
         value: $(params.git-url)
       - name: revision
         value: $(params.revision)
+      runAfter:
+      - init
       taskRef:
         params:
         - name: name
@@ -24,6 +47,11 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
       workspaces:
       - name: output
         workspace: workspace
