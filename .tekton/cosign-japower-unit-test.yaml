@@ -1,22 +1,36 @@
 kind: Pipeline
 apiVersion: tekton.dev/v1beta1
 metadata:
-  name: example-pipeline
+  name: unit-tests
 spec:
   params:
-  - name: username
-    default: world
+  - name: git-url
+    default: "https://github.com/JasonPowr/cosign.git"
+  - name: git-revision
+    default: "redhat-v2.1.1"
   tasks:
-  - name: task-1
-    params:
-    - name: username
-      value: $(params.username)
-    taskSpec:
+    - name: clone-repository
       params:
-      - name: username
-      steps:
-      - image: alpine:3.15
-        script: |
-          #!/bin/sh
-          cd /workspace
-          ls -la
+      - name: url
+        value: $(params.git-url)
+      - name: revision
+        value: $(params.revision)
+      taskRef:
+        params:
+        - name: name
+          value: git-clone
+        - name: bundle
+          value: quay.io/redhat-appstudio-tekton-catalog/task-git-clone:0.1@sha256:1f84973a21aabea38434b1f663abc4cb2d86565a9c7aae1f90decb43a8fa48eb
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+      workspaces:
+      - name: output
+        workspace: workspace
+      - name: basic-auth
+        workspace: git-auth
