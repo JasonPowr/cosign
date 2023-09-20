@@ -18,5 +18,5 @@ spec:
       - image: alpine:3.15
         script: |
           #!/bin/sh
+          cd /workspace
           ls -la
-          pwd
