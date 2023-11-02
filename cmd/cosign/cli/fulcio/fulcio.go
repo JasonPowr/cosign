@@ -24,6 +24,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/sigstore/cosign/v2/cmd/cosign/cli/fulcio/assets"
 	"github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/v2/cmd/cosign/cli/sign/privacy"
 	"github.com/sigstore/cosign/v2/internal/pkg/cosign/fulcio/fulcioroots"
@@ -92,7 +93,13 @@ func GetCert(_ context.Context, sv signature.SignerVerifier, idToken, flow, oidc
 	case flowDevice:
 		c.flow = oauthflow.NewDeviceFlowTokenGetterForIssuer(oidcIssuer)
 	case flowNormal:
-		c.flow = oauthflow.DefaultIDTokenGetter
+		if strings.Contains(oidcIssuer, "keycloak") {
+			c.flow = &oauthflow.InteractiveIDTokenGetter{
+				HTMLPage: assets.InteractiveSuccessHTML,
+			}
+		} else {
+			c.flow = oauthflow.DefaultIDTokenGetter
+		}
 	case flowToken:
 		c.flow = &oauthflow.StaticTokenGetter{RawToken: idToken}
 	default:
