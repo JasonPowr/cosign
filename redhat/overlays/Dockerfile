@@ -1,5 +1,5 @@
 # Build stage
-FROM registry.access.redhat.com/ubi9/go-toolset@sha256:c3a9c5c7fb226f6efcec2424dd30c38f652156040b490c9eca5ac5b61d8dc3ca AS build-env
+FROM registry.access.redhat.com/ubi9/go-toolset@sha256:9666cdca1df0003f60b5bf3862b58a910df5753ba7bd166a2117b044b29450cb AS build-env
 
 WORKDIR /cosign
 COPY . .
